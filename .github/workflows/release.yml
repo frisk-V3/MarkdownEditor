@@ -13,7 +13,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # 1. Node.js セットアップ & TSビルド (型チェック無視)
+    # 1. Node.js セットアップ & TSビルド
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -25,25 +25,27 @@ jobs:
         npm install --save-dev @types/node
         npx vite build --emptyOutDir
 
-    # 2. .NET セットアップ & GUI EXE作成
+    # 2. .NET セットアップ
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    
-    # GUIアプリとして1つのEXEに固めるコマンド
+
+    # 3. NuGetパッケージの復元 (WebView2などを読み込む)
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # 4. GUI EXE作成 (エラーが出にくい標準的なコマンド)
     - name: Publish GUI EXE
       run: |
         dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true -o ./publish
 
-    # 3. GitHub Release にアップロード
+    # 5. GitHub Release にアップロード
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: "v${{ github.run_number }}"
         name: "GUI Editor v${{ github.run_number }}"
         files: ./publish/*.exe
-        draft: false
-        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
