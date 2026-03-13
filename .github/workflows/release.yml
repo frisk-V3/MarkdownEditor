@@ -2,41 +2,45 @@ name: Build and Release Exe
 
 on:
   push:
-    tags:
-      - 'v*' # "v1.0.0" のようなタグをプッシュした時に起動
+    branches: [ "main" ] # mainにpushしたら即実行
 
 jobs:
-  release:
-    runs-on: windows-latest # EXEを作るためにWindows環境で実行
+  build_and_release:
+    runs-on: windows-latest
+    permissions: # Releaseを作るために必須の権限
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
 
-    # 1. Node.js セットアップ & TSビルド
+    # 1. TSをビルド (ClientApp フォルダへ移動して実行)
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 20
-    - name: Build TypeScript
+    - name: Build TS
       run: |
         cd ClientApp
         npm install
         npm run build
 
-    # 2. .NET セットアップ & EXE作成 (Single File EXE)
+    # 2. .NETをビルドしてEXE化
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    
     - name: Publish EXE
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o ./publish
+        dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o ./output
 
-    # 3. GitHub Release にアップロード
-    - name: Create Release
+    # 3. Releaseページにアップロード
+    - name: Create Release and Upload EXE
       uses: softprops/action-gh-release@v1
       with:
-        files: ./publish/MyMarkdownEditor.exe # 生成されたEXEを指定
+        tag_name: "latest-build"
+        name: "Latest Auto Build"
+        files: ./output/*.exe
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
