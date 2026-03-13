@@ -1,0 +1,42 @@
+name: Build and Release Exe
+
+on:
+  push:
+    tags:
+      - 'v*' # "v1.0.0" のようなタグをプッシュした時に起動
+
+jobs:
+  release:
+    runs-on: windows-latest # EXEを作るためにWindows環境で実行
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # 1. Node.js セットアップ & TSビルド
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+    - name: Build TypeScript
+      run: |
+        cd ClientApp
+        npm install
+        npm run build
+
+    # 2. .NET セットアップ & EXE作成 (Single File EXE)
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Publish EXE
+      run: |
+        dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o ./publish
+
+    # 3. GitHub Release にアップロード
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: ./publish/MyMarkdownEditor.exe # 生成されたEXEを指定
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
