@@ -2,7 +2,7 @@ name: Build and Release Exe
 
 on:
   push:
-    branches: [ "main" ] # mainにpushしたら即実行
+    branches: [ "main" ]
 
 jobs:
   build_and_release:
