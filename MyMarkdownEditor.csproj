@@ -1,18 +1,31 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
+    <OutputType>WinExe</OutputType>
+    <!-- windows ターゲットを指定しないと Forms が使えません -->
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <!-- Windows Forms を有効にする -->
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- EXEを1つにまとめるための設定 -->
+    <Nullable>enable</Nullable>
+
+    <!-- EXEを1つに固める設定 -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
-    <!-- エラーの原因となる重複登録を自動で防ぐ設定 -->
-    <EnableDefaultContentItems>true</EnableDefaultContentItems>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
 
-  <!-- 前に書いていた <ItemGroup> 内の <Content Include="wwwroot\**"> は削除しました -->
-  <!-- これで「重複しています」というエラーが消えます -->
+  <ItemGroup>
+    <!-- WebView2本体。これがないと Microsoft.Web.Webview2 エラーになります -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2210.55" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- TSの成果物をビルドに含める -->
+    <Content Include="wwwroot\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
 </Project>
