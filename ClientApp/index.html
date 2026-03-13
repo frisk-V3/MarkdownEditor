@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>TS Markdown Editor</title>
+    <style>
+        body { margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        #container { display: flex; flex: 1; }
+        textarea, #preview { flex: 1; padding: 20px; box-sizing: border-box; }
+        textarea { border: none; border-right: 1px solid #ddd; outline: none; font-family: monospace; }
+        #preview { overflow-y: auto; background: #fafafa; }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <textarea id="editor"># Hello TS!</textarea>
+        <div id="preview"></div>
+    </div>
+    <!-- Viteが自動処理するので .ts のままでOK -->
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
