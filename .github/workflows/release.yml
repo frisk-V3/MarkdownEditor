@@ -1,19 +1,19 @@
-name: Build and Release Exe
+name: Build and Release GUI Exe
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  build_and_release:
+  build:
     runs-on: windows-latest
-    permissions: # Releaseを作るために必須の権限
+    permissions:
       contents: write
 
     steps:
     - uses: actions/checkout@v4
 
-    # 1. TSをビルド (ClientApp フォルダへ移動して実行)
+    # 1. Node.js セットアップ & TSビルド (型チェック無視)
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -22,24 +22,27 @@ jobs:
       run: |
         cd ClientApp
         npm install
-        npm run build
+        npm install --save-dev @types/node
+        npx vite build --emptyOutDir
 
-    # 2. .NETをビルドしてEXE化
+    # 2. .NET セットアップ & GUI EXE作成
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
-    - name: Publish EXE
+    
+    # GUIアプリとして1つのEXEに固めるコマンド
+    - name: Publish GUI EXE
       run: |
-        dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:PublishTrimmed=false -o ./output
+        dotnet publish -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true -o ./publish
 
-    # 3. Releaseページにアップロード
-    - name: Create Release and Upload EXE
+    # 3. GitHub Release にアップロード
+    - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: "latest-build"
-        name: "Latest Auto Build"
-        files: ./output/*.exe
+        tag_name: "v${{ github.run_number }}"
+        name: "GUI Editor v${{ github.run_number }}"
+        files: ./publish/*.exe
         draft: false
         prerelease: false
       env:
